@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Students' Personality and Potential Depth Test</title>
+    <style>
+        :root { --primary-color: #4a90e2; --bg-color: #f4f7f6; }
+        body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .progress-bar { height: 4px; width: 0%; background: var(--primary-color); margin-bottom: 20px; transition: width 0.3s; }
+        h2 { color: #333; font-size: 1.2rem; margin-bottom: 25px; line-height: 1.5; }
+        .option-btn { display: block; width: 100%; padding: 15px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer; text-align: left; transition: all 0.2s; font-size: 1rem; }
+        .option-btn:hover { background: #eef5ff; border-color: var(--primary-color); }
+        .hidden { display: none; }
+        .result-title { color: var(--primary-color); font-size: 1.5rem; }
+        .result-desc { line-height: 1.6; color: #666; margin-top: 15px; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="quiz-box">
+        <div class="progress-bar" id="progress"></div>
+        <div id="quiz-content">
+            <h2 id="question">Initializing the question bank...</h2>
+            <div id="options"></div>
+        </div>
+    </div>
+
+    <div class="card hidden" id="result-box">
+        <h2 class="result-title">Test Report</h2>
+        <p id="score-text"></p>
+        <div class="result-desc" id="analysis-text"></div>
+        <button class="option-btn" style="text-align:center; margin-top:20px; background: #eee;" onclick="localStorage.clear(); location.reload();">(Developer Debug: Reset Test)</button>
+    </div>
+
+    <script>
+        // --- 题库数据 (模拟网络生成的性格测试) ---
+        const quizData = [
+            { q: "When you have an important task before a deadline, what do you usually do?", a: [{t: "Plan ahead and complete it step by step", s: 10}, {t: "Inspiration strikes at the last moment and gets it done", s: 5}] },
+            { q: "In social situations (such as club gatherings), you tend to?", a: [{t: "Take the initiative to make new friends", s: 10}, {t: "Be with a few familiar friends", s: 5}] },
+            { q: "When facing an unknown challenge (such as an interdisciplinary competition), what is your first reaction?", a: [{t: "Excited, this is an opportunity to prove myself", s: 10}, {t: "Be cautious, assess the risks before making a decision", s: 5}] },
+            { q: "How do you view 'failure'?", a: [{t: "A painful experience from which you must learn lessons", s: 5}, {t: "Experimental data leading to success", s: 10}] },
+            { q: "In team collaboration, which role do you prefer to play?", a: [{t: " A leader who sets the direction ", s: 10}, {t: "An executor who solves specific problems", s: 5}] }
+        ];
+
+        let currentIndex = 0;
+        let totalScore = 0;
+
+        // --- 核心逻辑 ---
+
+        // 检查是否已经做过测试（模拟一次性链接逻辑）
+        window.onload = () => {
+            const savedResult = localStorage.getItem('quiz_finished');
+            if (savedResult) {
+                showResult(parseInt(localStorage.getItem('quiz_score')));
+            } else {
+                renderQuestion();
+            }
+        };
+
+        function renderQuestion() {
+            const data = quizData[currentIndex];
+            document.getElementById('progress').style.width = (currentIndex / quizData.length * 100) + "%";
+            document.getElementById('question').innerText = `Q${currentIndex + 1}: ${data.q}`;
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = "";
+            
+            data.a.forEach(answer => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn";
+                btn.innerText = answer.t;
+                btn.onclick = () => {
+                    totalScore += answer.s;
+                    nextStep();
+                };
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function nextStep() {
+            currentIndex++;
+            if (currentIndex < quizData.length) {
+                renderQuestion();
+            } else {
+                // 保存状态到本地浏览器
+                localStorage.setItem('quiz_finished', 'true');
+                localStorage.setItem('quiz_score', totalScore);
+                showResult(totalScore);
+            }
+        }
+
+        function showResult(score) {
+            document.getElementById('quiz-box').classList.add('hidden');
+            document.getElementById('result-box').classList.remove('hidden');
+            
+            let title = "";
+            let desc = "";
+
+            if (score >= 45) {
+                title = "Pioneering leader";
+                desc = "You have a very strong risk tolerance and are goal-oriented. In your future career, you are well-suited for entrepreneurship, management, or positions that require a high level of decision-making ability. Your confidence is your greatest weapon, but you should also pay attention to listening to others' detailed advice.";
+            } else if (score >= 35) {
+                title = "Conservative Expert";
+                desc = "You are a person with excellent balance. You can handle challenges while staying calm. You are suited to deeply cultivate your expertise in a professional field, becoming an indispensable core of the team. Your reliability earns you an excellent reputation in the workplace.";
+            } else {
+                title = "Thinking Assistance";
+                desc = "You tend to think deeply rather than act blindly. You are good at spotting logical flaws in details and are suited for technical research, data analysis, or creative planning work. Do not underestimate your caution; it is the last line of defense against mistakes in the team.";
+            }
+
+            document.getElementById('score-text').innerHTML = `your scor :<strong>${score}</strong> | Personality portrait:<strong>${title}</strong>`;
+            document.getElementById('analysis-text').innerText = desc;
+        }
+    </script>
+</body>
+</html>
